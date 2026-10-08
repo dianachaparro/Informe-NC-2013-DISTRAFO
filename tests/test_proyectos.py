@@ -17,6 +17,23 @@ class ProjectTests(unittest.TestCase):
         w.active.append([1, 'Verificar diseño', 'RETIE 25.2(a)'])
         w.save(self.list)
 
+    def test_residential_list_preserves_unnumbered_requirement_and_resets_marks(self):
+        w = Workbook()
+        sh = w.active
+        sh.append(['No.', 'ACTIVIDADES', None, 'REFERENCIA NORMATIVA', 'CUMPLE'])
+        sh.append([2, 'Verificar plano', None, 'RETIE 13.4(e)', 'X'])
+        sh.append([None, 'Verificar acometida', None, 'RETIE 27.3(b)', 'X'])
+        w.save(self.list)
+        p = new_project()
+        count = import_checklist(p, 'Usos finales residenciales', self.list)
+        self.assertEqual(count, 2)
+        self.assertEqual(p['requirements'][1]['reference'], 'RETIE 27.3(b)')
+        self.assertIn('Sin número', p['requirements'][1]['item'])
+        self.assertTrue(all(r['result'] == 'Pendiente' for r in p['requirements']))
+        p.update(project='Vivienda', inspection='R-1', address='Dirección', template='formato.xlsx', scopes=['Usos finales residenciales'])
+        p['requirements'][1].update(result='No cumple', observation='No se evidencia identificación de la acometida.')
+        self.assertEqual(report_case(p)['findings'][0]['scope'], 'Usos finales residenciales')
+
     def test_new_project_does_not_inherit_findings_or_drive(self):
         a, b = new_project(), new_project()
         import_checklist(a, 'Red subterránea', self.list)

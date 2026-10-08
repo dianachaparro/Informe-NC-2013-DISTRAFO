@@ -50,7 +50,7 @@ class Application:
             self.scopes[scope] = variable
             ttk.Checkbutton(scope_bar, text=scope, variable=variable, command=self.scope_changed).grid(row=0, column=i, padx=12)
             ttk.Button(scope_bar, text='Importar lista', command=lambda s=scope: self.guard(lambda: self.import_list(s))).grid(row=1, column=i, pady=5)
-        ttk.Label(scope_bar, text='Confirma que la lista y sus numerales corresponden a la versión RETIE elegida.').grid(row=2, column=0, columnspan=3, sticky='w')
+        ttk.Label(scope_bar, text='Confirma que la lista y sus numerales corresponden a la versión RETIE elegida.').grid(row=2, column=0, columnspan=len(SCOPES), sticky='w')
         table_frame = ttk.Frame(root)
         table_frame.pack(fill='both', expand=True, padx=10)
         self.table = ttk.Treeview(table_frame, columns=('scope', 'item', 'activity', 'result'), show='headings', selectmode='browse')

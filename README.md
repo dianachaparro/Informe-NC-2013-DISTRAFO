@@ -35,3 +35,7 @@ python -m unittest discover -s tests -v
 ```
 
 Las pruebas verifican aislamiento de proyectos, importación, resultados, conservación de fotos, protección de archivos originales, exportación Constructor, filas dinámicas y carga con API simulada. La autorización y carga real requieren el equipo y la cuenta del usuario. Las utilidades anteriores específicas de CARACOLÍ no se incluyen en esta aplicación general.
+
+## Usos finales residenciales
+
+Marcar «Usos finales residenciales» e importar la lista F-GI-12 V3 mediante su botón. Se conservan actividades y referencias, incluido el requisito sin número; las marcas de cumplimiento existentes no se heredan. Todos los requisitos comienzan pendientes. Validar la aplicabilidad y la versión del reglamento antes de registrar resultados. Seleccionar el F-GI-51 con hoja Constructor para exportar las NC. No se incluyen listas ni formatos del usuario en la descarga.

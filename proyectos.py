@@ -10,7 +10,7 @@ from uuid import uuid4
 from openpyxl import Workbook, load_workbook
 from generar_informe import generate, tabular
 
-SCOPES = ('Red subterránea', 'Red aérea', 'Subestación tipo poste')
+SCOPES = ('Red subterránea', 'Red aérea', 'Subestación tipo poste', 'Usos finales residenciales')
 RESULTS = ('Pendiente', 'Cumple', 'No cumple', 'No aplica', 'Evidencia insuficiente')
 
 
@@ -25,16 +25,40 @@ def import_checklist(project, scope, filename):
     book = load_workbook(filename, data_only=True)
     additions = []
     for sheet in book:
+        # Identificar columnas por encabezados; no importar marcas de otro inspector.
+        columns = None
+        for cells in sheet:
+            headers = {str(c.value or '').strip().upper(): c.column for c in cells}
+            if 'ACTIVIDADES' in headers:
+                reference = next((col for label, col in headers.items() if label.startswith('REFERENCIA')), None)
+                if reference:
+                    columns = (cells[0].row, headers['ACTIVIDADES'], reference)
+                    break
         for row in sheet:
-            values = [c.value for c in row if c.value is not None]
-            if len(values) >= 3 and isinstance(values[0], (int, float)) and isinstance(values[1], str):
-                key = f'{scope}|{sheet.title}|{values[0]}'
-                if any(r['key'] == key for r in project['requirements']):
-                    raise ValueError('Esta lista se superpone con requisitos importados. Crea un proyecto nuevo o usa otro alcance.')
-                additions.append(dict(key=key, scope=scope, item=str(values[0]), activity=values[1],
-                                      reference=str(values[2]), list_name=Path(filename).name,
-                                      result='Pendiente', observation='', documents='', photos=[],
-                                      reference_validated=False))
+            if columns:
+                header_row, activity_col, reference_col = columns
+                if row[0].row <= header_row:
+                    continue
+                number, activity, reference = row[0].value, row[activity_col - 1].value, row[reference_col - 1].value
+                if not isinstance(activity, str) or not activity.strip():
+                    continue
+                if number is not None and not isinstance(number, (int, float)):
+                    continue
+                item = str(number) if number is not None else f'Sin número (fila {row[0].row})'
+                key = f'{scope}|{sheet.title}|fila-{row[0].row}'
+            else:
+                values = [c.value for c in row if c.value is not None]
+                if len(values) < 3 or not isinstance(values[0], (int, float)) or not isinstance(values[1], str):
+                    continue
+                number, activity, reference = values[:3]
+                item = str(number)
+                key = f'{scope}|{sheet.title}|{number}'
+            if any(r['key'] == key for r in project['requirements']) or any(r['key'] == key for r in additions):
+                raise ValueError('Esta lista se superpone con requisitos importados. Crea un proyecto nuevo o usa otro alcance.')
+            additions.append(dict(key=key, scope=scope, item=item, activity=activity,
+                                  reference=str(reference or 'Pendiente de validar'), list_name=Path(filename).name,
+                                  result='Pendiente', observation='', documents='', photos=[],
+                                  reference_validated=False))
     if not additions:
         raise ValueError('No se encontraron requisitos en esa lista. Selecciona un formato de verificación compatible.')
     project['requirements'].extend(additions)
